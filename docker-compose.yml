@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: nambojoa_db
+    restart: always
+    environment:
+      POSTGRES_USER: nambojoa_admin
+      POSTGRES_PASSWORD: nambojoa_password
+      POSTGRES_DB: nambojoa_db
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,116 @@
+// apps/api/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USUARIOS ====================
+model User {
+  id              Int      @id @default(autoincrement())
+  username        String   @unique
+  password        String
+  balance         Float    @default(0)
+  foto            String   @default("default.png")
+  nivel           String   @default("Novato 🥉")
+  isAdmin         Boolean  @default(false)   // ← NUEVO: rol de admin
+
+  // Estadísticas
+  duelosGanados   Int      @default(0)
+  duelosPerdidos  Int      @default(0)
+  duelosEmpatados Int      @default(0)
+  totalApostado   Float    @default(0)
+  totalGanado     Float    @default(0)
+  rachaActual     Int      @default(0)
+  mejorRacha      Int      @default(0)
+  logros          Json     @default("[]")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  duelsCreados    Duel[]   @relation("DuelCreator")
+  duelsAceptados  Duel[]   @relation("DuelRival")
+  duelsGanados    Duel[]   @relation("DuelWinner")
+  transactions    Transaction[]
+}
+
+// ==================== TRANSACCIONES ====================
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  monto       Float
+  tipo        String   // 'acreditacion', 'apuesta', 'premio', 'devolucion'
+  descripcion String
+  adminId     Int?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+// ==================== DUELOS ====================
+model Duel {
+  id                Int      @id @default(autoincrement())
+  creatorId         Int
+  rivalId           Int?
+  deporte           String
+  equipoA           String
+  equipoB           String
+  equipoCreador     String   // 'equipoA' | 'equipoB'
+  amount            Float
+  message           String   @default("")
+  status            String   @default("pending") // pending | accepted | finished | cancelled
+  resultadoCreador  String?
+  resultadoRival    String?
+  winnerId          Int?
+  commission        Float    @default(0)
+  link              String   @unique
+  partidoId         Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  creator           User     @relation("DuelCreator", fields: [creatorId], references: [id])
+  rival             User?    @relation("DuelRival", fields: [rivalId], references: [id])
+  winner            User?    @relation("DuelWinner", fields: [winnerId], references: [id])
+  partido           Partido? @relation(fields: [partidoId], references: [id])
+}
+
+// ==================== TORNEO ====================
+model Equipo {
+  id        Int       @id @default(autoincrement())
+  nombre    String    @unique
+  deporte   String    @default("Fútbol 7")
+  createdAt DateTime  @default(now())
+
+  partidosA Partido[] @relation("EquipoA")
+  partidosB Partido[] @relation("EquipoB")
+}
+
+model Partido {
+  id           Int       @id @default(autoincrement())
+  equipoAId    Int
+  equipoBId    Int
+  fecha        DateTime
+  resultadoA   Int?
+  resultadoB   Int?
+  estado       String    @default("pendiente") // pendiente | finalizado
+  createdAt    DateTime  @default(now())
+
+  equipoA      Equipo    @relation("EquipoA", fields: [equipoAId], references: [id])
+  equipoB      Equipo    @relation("EquipoB", fields: [equipoBId], references: [id])
+  duels        Duel[]
+}
+
+// ==================== BANNERS ====================
+model Banner {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descripcion String
+  imagen      String?
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}

@@ -1,0 +1,15 @@
+{
+  "name": "nambojoa-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "db:migrate": "npm run prisma:migrate -w apps/api",
+    "db:studio": "npm run prisma:studio -w apps/api"
+  }
+}
